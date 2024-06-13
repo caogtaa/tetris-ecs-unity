@@ -158,7 +158,6 @@ MonoBehaviour:
     builtIn: 0
     assets:
     - Assets/ResRaw/hotfix
-    - Assets/ResRaw/tables
   ruleAssets:
   - asset: Assets/Arts/Fonts/Consolas SDF.asset
     bundle: 5f270c69.assets
@@ -364,8 +363,6 @@ MonoBehaviour:
     bundle: 6f94442e.assets
   - asset: Assets/ResRaw/hotfix
     bundle: 232daccd.raw
-  - asset: Assets/ResRaw/tables
-    bundle: b34a0a45.raw
   - asset: Assets/TextMesh Pro/Fonts/LiberationSans.ttf
     bundle: 4b733519.assets
   - asset: Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset
@@ -780,10 +777,6 @@ MonoBehaviour:
   - bundle: 232daccd.raw
     assets:
     - Assets/ResRaw/hotfix
-    isRawFile: 1
-  - bundle: b34a0a45.raw
-    assets:
-    - Assets/ResRaw/tables
     isRawFile: 1
   - bundle: c772f009.assets
     assets:

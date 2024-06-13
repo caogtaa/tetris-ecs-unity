@@ -22,6 +22,7 @@ namespace Tetris
 
                 if (!TetrisUtil.IsValidBlock(world, gameCtx.grid, ePiece))
                 {
+                    // spawn之后直接顶住了
                     ePiece.Del<PieceMoveComponent>();
                     ePiece.Del<PieceRotateFlag>();
                     gameCtx.SendMessage(new GameEndComponent(), new DelayComponent { delay = 1f });

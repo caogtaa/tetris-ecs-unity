@@ -50,6 +50,8 @@ namespace Tetris
                 }
                 else
                 {
+                    // 没有消除的时候，才会发送PieceNextRequest
+                    // 如果有消除，会先处理好LineClearDelayRequest再发送，对流程进行了控制
                     gameCtx.SendMessage(new PieceNextRequest());
                 }
 
@@ -130,9 +132,12 @@ namespace Tetris
                     }
 
                     var isB2B = false;
-                    if (gameCtx.lastClearIsSpecial && isSpecial) isB2B = true;
+                    if (gameCtx.lastClearIsSpecial && isSpecial)
+                        isB2B = true;
 
-                    if (isB2B) score = (int)(score * 1.5f);
+                    // special连招额外加分
+                    if (isB2B)
+                        score = (int)(score * 1.5f);
 
                     gameCtx.score += score;
 

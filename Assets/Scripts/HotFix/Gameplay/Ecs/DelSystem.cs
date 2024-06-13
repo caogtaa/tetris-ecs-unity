@@ -7,6 +7,7 @@ namespace Tetris
         public bool Enable { get; set; } = true;
         void IEcsRunSystem.Run(EcsSystems systems)
         {
+            // GT: 将T组件从所有entity上移除
             var world = systems.GetWorld();
             var filter = world.Filter().Inc<T>().End();
             foreach (var ent in filter) ent.Del<T>(world);

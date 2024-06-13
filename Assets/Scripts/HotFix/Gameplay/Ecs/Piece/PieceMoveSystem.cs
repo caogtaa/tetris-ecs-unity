@@ -32,9 +32,15 @@ namespace Tetris
                     ref var request = ref i2.Get<PieceDropRequest>(world);
 
                     cMove.dropType = request.dropType;
-                    if (cMove.dropType == EDropType.Soft)
+
+                    if (cMove.dropType == EDropType.Soft) {
+                        // 软着陆时重置下落时间
+                        // TODO: 有个bug，如果快速敲击向下按钮，piece会悬浮在空中
                         cMove.lastFallTime = 0f;
-                    else if (cMove.dropType == EDropType.Hard) gameCtx.lastOpIsRotate = false;
+                    } else if (cMove.dropType == EDropType.Hard) {
+                        // 硬着陆时不认定T-spin?
+                        gameCtx.lastOpIsRotate = false;
+                    }
                 }
 
                 foreach (var i1 in moveRequests)
@@ -66,7 +72,7 @@ namespace Tetris
 
             ref var lastFallTime = ref cMove.lastFallTime;
 
-            float dropDeltaTime;
+            float dropDeltaTime;        // 下落间隔。默认1s一次，软着陆时70ms一次，硬着陆？
             switch (cMove.dropType)
             {
                 case EDropType.Normal:
@@ -83,18 +89,19 @@ namespace Tetris
 
             lastFallTime += deltaTime;
 
+            // 硬着陆时因为dropDeltaTime = 0，这里会死循环直到方块着陆
             while (lastFallTime >= dropDeltaTime)
             {
                 lastFallTime -= dropDeltaTime;
                 if (!TetrisUtil.MovePiece(world, grid, ePiece, moveDelta))
                 {
                     if (ePiece.Has<AddToGridComponent>() == false) ePiece.Add<AddToGridComponent>();
-                    if (cMove.dropType != EDropType.Hard)
-                        if (ePiece.Has<DelayComponent>() == false)
-                        {
+                    if (cMove.dropType != EDropType.Hard) {
+                        if (ePiece.Has<DelayComponent>() == false) {
                             ref var delay = ref ePiece.Add<DelayComponent>();
                             delay.delay = TetrisDef.AddToGridDelay;
                         }
+                    }
 
                     lastFallTime = 0f;
                     break;

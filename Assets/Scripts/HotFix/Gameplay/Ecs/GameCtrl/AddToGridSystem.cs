@@ -17,6 +17,7 @@ namespace Tetris
 
             var world = systems.GetWorld();
 
+            // 没有Delay组件了，但是有AddToGrid，说明延迟到期了，需要立刻AddToGrid
             var pieces = world.Filter().Inc<PieceMoveComponent, ComponentList<EcsEntity>, AddToGridComponent>()
                 .Exc<DelayComponent>()
                 .End();
@@ -41,9 +42,15 @@ namespace Tetris
                         var x = Mathf.RoundToInt(pos.x);
                         var y = Mathf.RoundToInt(pos.y);
 
-                        if (y < TetrisDef.Height) isGameOver = false;
+                        if (y < TetrisDef.Height) {
+                            // 只要有1个tile进入了20以内的格子，就没有GameOver
+                            // 上面预留了2个高度用于spawn，注意如果改为18-bag的话，这个高度也要做相应调整
+                            // 注意到长条必须是横着出来的，如果竖着出来占3个格子，有可能会和当前的判定逻辑冲突，导致过早暴毙
+                            // 注意顶部同样参与wallkick
+                            isGameOver = false;
+                        }
 
-                        Grid[y][x] = eTile;
+                        Grid[y][x] = eTile;     // GameOver的情况下可能会覆盖格子
 
                         if (y > yMax) yMax = y;
                         if (y < yMin) yMin = y;

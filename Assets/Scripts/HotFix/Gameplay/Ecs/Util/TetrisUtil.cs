@@ -34,6 +34,7 @@ namespace Tetris
                 ChangePieceColor(world, ref ePiece, GetTileColor(pieceID));
             }
 
+            // GT: 只展示前5个俄罗斯方块，剩余的不展示，移除TileRenderer组件
             for (; i < queue.Count; i++)
             {
                 var ePiece = queue[i];
@@ -49,6 +50,9 @@ namespace Tetris
 
         public static void ChangePieceColor(EcsWorld world, ref EcsEntity ePiece, Color color)
         {
+            // GT: 奇怪piece里应该已经有这个了啊
+            // 从内部源码看到，已经有了就直接返回，不Add了
+            // 这种改动对ECS框架的稳定性带来一定的不确定性
             var tileList = ePiece.Add<ComponentList<EcsEntity>>().Value;
             for (var k = 0; k < tileList.Count; k++)
             {
@@ -58,6 +62,15 @@ namespace Tetris
             }
         }
 
+        /// <summary>
+        /// 判定是否T-spin消除
+        /// 判断依据是T快的4给对角位置至少有3个非空
+        /// mini的判定则是至少两个对角靠墙
+        /// </summary>
+        /// <param name="world"></param>
+        /// <param name="grid"></param>
+        /// <param name="ePiece"></param>
+        /// <returns></returns>
         public static (bool isTSpin, bool isMini) IsTSpin(EcsWorld world, EcsEntity[][] grid, in EcsEntity ePiece)
         {
 
@@ -97,6 +110,15 @@ namespace Tetris
             return (isSpin, isSpin && c2 >= 2);
         }
 
+        /// <summary>
+        /// 尝试移动piece
+        /// 先对piece做位移，然后检测一下是否能摆放。检测失败就回滚位置
+        /// </summary>
+        /// <param name="world"></param>
+        /// <param name="grid"></param>
+        /// <param name="ePiece"></param>
+        /// <param name="moveDelta"></param>
+        /// <returns></returns>
         public static bool MovePiece(EcsWorld world, EcsEntity[][] grid, in EcsEntity ePiece, in Vector2 moveDelta)
         {
             ref var cPiecePos = ref ePiece.Get<PositionComponent>();
@@ -132,12 +154,13 @@ namespace Tetris
                 var eTile = tileList[k];
                 ref var cPos = ref eTile.Get<PositionComponent>();
 
+                // GT: 这里的tile position没有必要加上piece position进行旋转，保留tile和pivot的局部坐标做旋转效果等价
                 var tilePos = cPos.position + root;
                 var pos = RotateAt(tilePos, pivot, angle);
                 cPos.position = pos - root;
             }
         }
-
+        
         public static Vector3 RotateAt(in Vector3 point, in Vector3 pivot, int angle)
         {
             var rot = Quaternion.Euler(0f, 0f, angle);
@@ -350,6 +373,18 @@ namespace Tetris
             return null;
         }
 
+        /// <summary>
+        /// 尝试对piece的next状态进行wallkick测试。注意当前piece tile的坐标已经处于next旋转度状态，但是state还是老的
+        /// state + next用于获取需要测试的偏移量
+        /// wallkick会尝试将piece进行不同位移的调整，如果刚好能放下则将其瞬移至对应位置
+        /// result会返回第一个合法的位移
+        /// </summary>
+        /// <param name="world"></param>
+        /// <param name="grid"></param>
+        /// <param name="ePiece"></param>
+        /// <param name="next">将要变成的下个旋度</param>
+        /// <param name="result"></param>
+        /// <returns></returns>
         public static bool WallKickTest(EcsWorld world, EcsEntity[][] grid, in EcsEntity ePiece, int next,
             out Vector2Int result)
         {
@@ -370,6 +405,15 @@ namespace Tetris
             return false;
         }
 
+        /// <summary>
+        /// 判断piece当前的状态是否能放入grid
+        /// 1. 判断是否出界
+        /// 2. 判断是否和grid中已被占位的格子冲突
+        /// </summary>
+        /// <param name="world"></param>
+        /// <param name="grid"></param>
+        /// <param name="ePiece"></param>
+        /// <returns></returns>
         public static bool IsValidBlock(EcsWorld world, EcsEntity[][] grid, in EcsEntity ePiece)
         {
             var cPiecePos = ePiece.Get<PositionComponent>();

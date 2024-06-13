@@ -21,16 +21,18 @@ namespace Tetris
             var ghostUpdateRequest = world.Filter().Inc<PieceGhostUpdateRequest>().End();
             var ghostPiece = world.Filter()
                 .Inc<PieceGhostComponent, ComponentList<EcsEntity>, PositionComponent>().End();
-
-
+            
+            // TODO: 一帧内可能有多个ghostUpdateRequest，这里可以简化
             foreach (var i in ghostUpdateRequest)
             {
                 ref var request = ref i.Get<PieceGhostUpdateRequest>(world);
 
                 var eGhostPiece = world.Pack(ghostPiece[0]);
 
+                // 拷贝tile的位置、旋转状态
                 CopyState(world, ref eGhostPiece, in request.ePiece);
 
+                // 沉底
                 while (TetrisUtil.MovePiece(world, grid, eGhostPiece, Vector2.down))
                 {
                 }

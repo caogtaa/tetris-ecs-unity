@@ -23,9 +23,9 @@ namespace Tetris
         public float scale;
 
         /// <summary>
-        ///     0
+        ///        0
         ///     3     1
-        ///     2
+        ///        2
         ///     0 - spawn state
         ///     1 - rotate right
         ///     2 - 2 successive rotations in either direction form spawn

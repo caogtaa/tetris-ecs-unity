@@ -12,6 +12,9 @@ namespace Tetris
         void IEcsInitSystem.Init(EcsSystems systems)
         {
             var world = systems.GetWorld();
+            
+            // GT: world.NewEntity()构造的entity只能返回id，内部存储EntityData
+            // EcsEntity通过 world.Pack(world.NewEntity())返回，实际上是将EntityData数据重新打包后返回
             var ent = world.NewEntity();
             var bagList = ent.Add<ComponentList<EcsEntity>>(world).Value;
             ent.Add<PieceBagComponent>(world);
@@ -35,9 +38,11 @@ namespace Tetris
             for (var i = 0; i < blocks.Length; i++)
                 queue.Add(TetrisUtil.CreatePieceForBagView(world, blocks[i], new Vector3()));
 
+            // GT: 貌似是预先准备了两个7-bag
             RandomLeft(queue);
             RandomRight(queue);
 
+            // GT: 刷新一下右侧的预览界面，展示接下来5个pieces
             TetrisUtil.UpdateNextChainSlot(world, queue);
         }
 
