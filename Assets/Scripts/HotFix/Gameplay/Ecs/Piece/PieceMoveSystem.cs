@@ -27,6 +27,7 @@ namespace Tetris
                 var ePiece = world.Pack(i);
                 ref var cMove = ref i.Get<PieceMoveComponent>(world);
 
+                int forceDropLine = 0;
                 foreach (var i2 in dropRequests)
                 {
                     ref var request = ref i2.Get<PieceDropRequest>(world);
@@ -35,8 +36,10 @@ namespace Tetris
 
                     if (cMove.dropType == EDropType.Soft) {
                         // 软着陆时重置下落时间
-                        // TODO: 有个bug，如果快速敲击向下按钮，piece会悬浮在空中
                         cMove.lastFallTime = 0f;
+                        
+                        // 按下的第一下立刻下移一格
+                        forceDropLine = 1;
                     } else if (cMove.dropType == EDropType.Hard) {
                         // 硬着陆时不认定T-spin?
                         gameCtx.lastOpIsRotate = false;
@@ -61,12 +64,12 @@ namespace Tetris
                     }
                 }
 
-                AutoDrop(world, grid, ePiece, deltaTime, Vector2.down);
+                AutoDrop(world, grid, ePiece, deltaTime, Vector2.down, forceDropLine);
             }
         }
 
-        private void AutoDrop(EcsWorld world, EcsEntity[][] grid, in EcsEntity ePiece, float deltaTime,
-            in Vector2 moveDelta)
+        private void AutoDrop(EcsWorld world, EcsEntity[][] grid, in EcsEntity ePiece, 
+            float deltaTime, in Vector2 moveDelta, int forceDropLine)
         {
             ref var cMove = ref ePiece.Get<PieceMoveComponent>();
 
@@ -88,6 +91,7 @@ namespace Tetris
             }
 
             lastFallTime += deltaTime;
+            lastFallTime += dropDeltaTime * forceDropLine;
 
             // 硬着陆时因为dropDeltaTime = 0，这里会死循环直到方块着陆
             while (lastFallTime >= dropDeltaTime)
@@ -95,9 +99,12 @@ namespace Tetris
                 lastFallTime -= dropDeltaTime;
                 if (!TetrisUtil.MovePiece(world, grid, ePiece, moveDelta))
                 {
-                    if (ePiece.Has<AddToGridComponent>() == false) ePiece.Add<AddToGridComponent>();
-                    if (cMove.dropType != EDropType.Hard) {
-                        if (ePiece.Has<DelayComponent>() == false) {
+                    if (!ePiece.Has<AddToGridComponent>())
+                        ePiece.Add<AddToGridComponent>();
+
+                    // 硬着陆不延时
+                    if (cMove.dropType == EDropType.Normal || cMove.dropType == EDropType.Soft) {
+                        if (!ePiece.Has<DelayComponent>()) {
                             ref var delay = ref ePiece.Add<DelayComponent>();
                             delay.delay = TetrisDef.AddToGridDelay;
                         }
