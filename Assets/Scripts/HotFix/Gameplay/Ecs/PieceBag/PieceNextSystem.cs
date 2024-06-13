@@ -28,15 +28,23 @@ namespace Tetris
             }
         }
 
+        /// <summary>
+        /// pop最外面的piece，然后追加到末尾
+        /// 由于设计了2个7-bag，第一个7-bag用完后直接shuffle一次尾部的7个就行了
+        /// </summary>
+        /// <param name="world"></param>
+        /// <param name="bag"></param>
+        /// <param name="queue"></param>
         private void RequestNextBlock(EcsWorld world, ref PieceBagComponent bag, List<EcsEntity> queue)
         {
             ref var currentIndex = ref bag.currentIndex;
 
-            if (currentIndex >= 7)
+            if (currentIndex++ % 7 == 0)
             {
-                SwapLeftRight(queue);
+                // 每7次之后重新打乱后面7个
+                // SwapLeftRight(queue);
                 RandomRight(queue);
-                currentIndex = 0;
+                // currentIndex = 0;
             }
 
             var ePiece = queue[0];
@@ -50,7 +58,16 @@ namespace Tetris
 
         private static void RandomRight(List<EcsEntity> queue)
         {
-            GRandom.Shuffle(queue, 7, 7);
+            Shuffle2(queue, 7, 7);
+        }
+        
+        private static void Shuffle2<T>(IList<T> array, int start, int count)
+        {
+            if (start < 0 || array.Count <= start || array.Count < start + count)
+                throw new System.ArgumentOutOfRangeException();
+
+            for (int i = start; i < start + count; i++)
+                GRandom.Swap(array, i, GRandom.NextInt(i, start + count));
         }
 
         private static void SwapLeftRight(List<EcsEntity> queue)

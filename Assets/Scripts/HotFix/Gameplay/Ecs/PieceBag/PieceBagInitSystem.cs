@@ -43,12 +43,31 @@ namespace Tetris
 
         private static void RandomLeft(List<EcsEntity> queue)
         {
-            GRandom.Shuffle(queue, 0, 7);
+            // GT: 修正了7-bag算法
+            Shuffle2(queue, 0, 7);
         }
 
         private static void RandomRight(List<EcsEntity> queue)
         {
-            GRandom.Shuffle(queue, 7, 7);
+            // GT: TODO: 这里怎么硬编码了
+            Shuffle2(queue, 7, 7);
+        }
+        
+        /// <summary>
+        /// 代替GRandom.Shuffle()，因为取的长度有问题
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="start"></param>
+        /// <param name="count"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        private static void Shuffle2<T>(IList<T> array, int start, int count)
+        {
+            if (start < 0 || array.Count <= start || array.Count < start + count)
+                throw new System.ArgumentOutOfRangeException();
+
+            for (int i = start; i < start + count; i++)
+                GRandom.Swap(array, i, GRandom.NextInt(i, start + count));
         }
     }
 }
